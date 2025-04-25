@@ -1,222 +1,340 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wingo Big/Small Predictor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #e96443, #904e95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wingo Number Sequence Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #111827;
+            color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; /* Added padding for smaller screens */
+        }
 
-    .card {
-      background-color: #fff;
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      position: relative;
-      overflow: hidden;
-      text-align: center;
-    }
+        .card {
+            background-color: #1f2937;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            border: 1px solid #374151;
+        }
 
-    .card::before {
-      content: "";
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      z-index: -1;
-      border-radius: 22px;
-    }
+        .card h2 {
+            margin-bottom: 25px;
+            color: #6366f1;
+            font-size: 28px;
+            font-weight: 700;
+        }
 
-    .card h2 {
-      margin-bottom: 20px;
-      color: #333;
-      font-size: 24px;
-      font-weight: 600;
-    }
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 2px solid #4b5563;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            background-color: #2d3748;
+            color: #f9fafb;
+        }
 
-    input[type="text"] {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      box-sizing: border-box;
-      transition: border-color 0.3s ease;
-    }
+        input[type="text"]:focus {
+            border-color: #a855f7;
+            outline: none;
+            background-color: #374151;
+        }
 
-    input[type="text"]:focus {
-      border-color: #bc1888;
-      outline: none;
-    }
+        button {
+            padding: 14px;
+            font-size: 16px;
+            width: 100%;
+            background: linear-gradient(to right, #a855f7, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
 
-    button {
-      padding: 14px;
-      font-size: 16px;
-      width: 100%;
-      background: linear-gradient(45deg, #f09433, #dc2743);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.3s ease;
-    }
+        button:hover {
+            background: linear-gradient(to right, #7e22ce, #5b21b6);
+            transform: translateY(-2px);
+        }
 
-    button:hover {
-      background: linear-gradient(45deg, #cc2366, #bc1888);
-    }
+        .result {
+            margin-top: 25px;
+            font-size: 18px;
+            color: #e5e7eb;
+            font-weight: 600;
+        }
 
-    .result {
-      margin-top: 20px;
-      font-size: 16px;
-      color: #444;
-    }
+        .accuracy {
+            margin-top: 25px;
+            font-size: 20px;
+            color: #e5e7eb;
+            font-weight: 700;
+        }
 
-    .accuracy {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #444;
-      font-weight: 600;
-    }
+        .history {
+            margin-top: 25px;
+            background-color: #2d3748;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #4b5563;
+            overflow-y: auto;
+            max-height: 200px;
+            text-align: left;
+            font-size: 14px;
+            color: #d1d5db;
+        }
 
-    .history {
-      margin-top: 20px;
-      background-color: #f9f9f9;
-      border-radius: 10px;
-      padding: 10px;
-      border: 1px solid #eee;
-    }
+        .history p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #d1d5db;
+            line-height: 1.5;
+        }
 
-    .result-section {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .result-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Added for responsiveness */
+        }
 
-    .actual-result {
-      margin-top: 20px;
-    }
-  </style>
+        .actual-result {
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Added for responsiveness */
+            max-width: 200px; /* Added max-width */
+        }
+
+        .actual-result input[type="text"] {
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 200px;
+        }
+        .actual-result button{
+             width: 100%;
+             max-width: 200px;
+        }
+
+        #predictionResult {
+            color: #a855f7;
+        }
+
+        #accuracyResult {
+            color: #6ee7b7;
+        }
+
+        /* Media query for smaller screens */
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+            .result-section {
+                flex-direction: column; /* Stack elements vertically on small screens */
+                align-items: center;
+            }
+            .actual-result {
+                margin-top: 20px; /* Add margin above actual result on small screens */
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Wingo Big/Small Predictor</h2>
-    <p>Enter the two numbers pair (comma-separated, e.g. 4,5):</p>
-    <input type="text" id="sequence" placeholder="Enter Pair">
-    <button onclick="predictNext()">Predict Next</button>
+    <div class="card">
+        <h2>Wingo Number Sequence Analyzer</h2>
+        <p>Enter the two numbers pair (comma-separated, e.g. 4,5 or 13):</p>
+        <input type="text" id="sequence" placeholder="Enter Pair">
+        <button onclick="predictNext()">Predict Next</button>
 
-    <div class="result">
-      <p><strong>Prediction Result:</strong> <span id="predictionResult">-</span></p>
+        <div class="result">
+            <p><strong>Prediction Result:</strong> <span id="predictionResult">-</span></p>
+        </div>
+
+        <div class="result-section">
+            <div class="accuracy">
+                <p><strong>Accuracy:</strong> <span id="accuracyResult">0/0</span></p>
+            </div>
+
+            <div class="actual-result">
+                <input type="text" id="actualResult" placeholder="Enter Actual Number (0-9)">
+                <button onclick="submitActualResult()">Submit Actual Result</button>
+            </div>
+        </div>
+        <div class="history">
+            <p><strong>Prediction History:</strong></p>
+            <div id="predictionHistory"></div>
+        </div>
     </div>
 
-    <div class="result-section">
-      <div class="accuracy">
-        <p><strong>Accuracy:</strong> <span id="accuracyResult">0/0</span></p>
-      </div>
+    <script>
+        const numberSequence = [6,8,4,0,4,0,5,5,0,6,0,5,5,0,8,0,7,6,4,9,3,9,7,2,7,2,7,1,2,7,0,1,7,6,9,4,1,9,5,9,2,5,3,5,6,6,8,5,1,8,2,0,5,8,8,0,1,9,7,7,4,3,4,5,2,3,9,0,9,8,9,3,5,5,0,6,0,7,3,8,6,0,5,5,3,7,9,8,4,8,0,2,7,7,2,7,7,1,8,1,6,1,4,9,9,5,5,0,0,4,0,8,1,5,1,3,5,1,3,4,7,4,7,3,7,7,9,1];
+        let totalPredictions = 0;
+        let correctPredictions = 0;
+        let predictionHistory = [];
+        let pairFrequency = {};
+        let followingNumberFrequency = {};
 
-      <div class="actual-result">
-        <input type="text" id="actualResult" placeholder="Enter Actual Number (0-9)">
-        <button onclick="submitActualResult()">Submit Actual Result</button>
-      </div>
-    </div>
-  </div>
+        function predictNext() {
+            const input = document.getElementById("sequence").value.trim();
+            let inputPair;
+            if (input.length === 2)
+            {
+                inputPair = [input[0],input[1]];
+            }
+            else{
+                inputPair = input.split(',');
+            }
 
-  <script>
-    const numberSequence = [6,8,4,0,4,0,5,5,0,6,0,5,5,0,8,0,7,6,4,9,3,9,7,2,7,2,7,1,2,7,0,1,7,6,9,4,1,9,5,9,2,5,3,5,6,6,8,5,1,8,2,0,5,8,8,0,1,9,7,7,4,3,4,5,2,3,9,0,9,8,9,3,5,5,0,6,0,7,3,8,6,0,5,5,3,7,9,8,4,8,0,2,7,7,2,7,7,1,8,1,6,1,4,9,9,5,5,0,0,4,0,8,1,5,1,3,5,1,3,4,7,4,7,3,7,7,9,1];
-    let totalPredictions = 0;
-    let correctPredictions = 0;
 
-    function predictNext() {
-      const input = document.getElementById("sequence").value.trim();
-      const inputPair = input.split(',');
-
-      if (inputPair.length === 2) {
-        const result = findPrediction(inputPair);
-        document.getElementById("predictionResult").innerText = result;
-      } else {
-        alert("Please enter a valid pair of numbers.");
-      }
-    }
-
-    function findPrediction(pair) {
-      const pairStr = pair.join(',');
-      const occurrences = findOccurrences(pairStr);
-      const result = analyzeFollowingNumbers(occurrences);
-
-      if (result === null) {
-        return "Skip";
-      } else {
-        return result;
-      }
-    }
-
-    function findOccurrences(pair) {
-      let occurrences = [];
-      for (let i = 0; i < numberSequence.length - 1; i++) {
-        if (numberSequence[i] === parseInt(pair.split(',')[0]) && numberSequence[i + 1] === parseInt(pair.split(',')[1])) {
-          occurrences.push(i);
-        }
-      }
-      return occurrences;
-    }
-
-    function analyzeFollowingNumbers(occurrences) {
-      let bigCount = 0;
-      let smallCount = 0;
-
-      occurrences.forEach((index) => {
-        if (index + 2 < numberSequence.length) {
-          const nextNumber = numberSequence[index + 2];
-          if (nextNumber >= 5) {
-            bigCount++;
-          } else {
-            smallCount++;
-          }
-        }
-      });
-
-      if (bigCount > smallCount) {
-        return "Big";
-      } else if (smallCount > bigCount) {
-        return "Small";
-      } else {
-        return null;
-      }
-    }
-
-    function submitActualResult() {
-      const actualResult = document.getElementById("actualResult").value.trim();
-
-      if (actualResult >= 0 && actualResult <= 9) {
-        totalPredictions++;
-        const predictedResult = document.getElementById("predictionResult").innerText;
-        const actualClassification = actualResult >= 5 ? "Big" : "Small";
-
-        if (predictedResult === actualClassification) {
-          correctPredictions++;
+            if (inputPair.length === 2 && !isNaN(inputPair[0]) && !isNaN(inputPair[1])) {
+                const result = findPrediction(inputPair);
+                document.getElementById("predictionResult").innerText = result;
+            } else {
+                alert("Please enter a valid pair of numbers separated by a comma.");
+            }
         }
 
-        const accuracy = `${correctPredictions}/${totalPredictions}`;
-        document.getElementById("accuracyResult").innerText = accuracy;
-        document.getElementById("actualResult").value = ""; // Reset the input field
-      } else {
-        alert("Please enter a number between 0 and 9 for the actual result.");
-      }
-    }
-  </script>
+        function findPrediction(pair) {
+            const pairNum1 = parseInt(pair[0]);
+            const pairNum2 = parseInt(pair[1]);
+
+            if (isNaN(pairNum1) || isNaN(pairNum2)) {
+                return "Invalid Input";
+            }
+
+            updateFrequency(pairNum1, pairNum2);
+            const nextNumberPrediction = predictNextNumber(pairNum1, pairNum2);
+
+            if (nextNumberPrediction === null) {
+                return "Skip";
+            } else {
+                return nextNumberPrediction >= 5 ? "Big" : "Small";
+            }
+        }
+
+        function updateFrequency(num1, num2) {
+            const pairKey = `${num1},${num2}`;
+            pairFrequency[pairKey] = (pairFrequency[pairKey] || 0) + 1;
+
+            for (let i = 0; i < numberSequence.length - 1; i++) {
+                if (numberSequence[i] === num1 && numberSequence[i + 1] === num2) {
+                    if (i + 2 < numberSequence.length) {
+                        const nextNumber = numberSequence[i + 2];
+                        if (!followingNumberFrequency[pairKey]) {
+                            followingNumberFrequency[pairKey] = {};
+                        }
+                        followingNumberFrequency[pairKey][nextNumber] =
+                            (followingNumberFrequency[pairKey][nextNumber] || 0) + 1;
+                    }
+                }
+            }
+        }
+
+        function predictNextNumber(num1, num2) {
+            const pairKey = `${num1},${num2}`;
+            const freq = followingNumberFrequency[pairKey];
+
+            if (!freq) {
+                return null; // No history for this pair
+            }
+
+            let maxFreq = 0;
+            let predictedNumber = null;
+            let candidates = [];
+
+             for (const number in freq) {
+                if (freq[number] > maxFreq) {
+                    maxFreq = freq[number];
+                    candidates = [parseInt(number)]; // Start a new list
+                } else if (freq[number] === maxFreq) {
+                    candidates.push(parseInt(number)); // Add to the existing list
+                }
+            }
+            // Prioritize the number that also appeared more frequently in the last 10 results
+            if (candidates.length > 1) {
+                const lastTen = numberSequence.slice(Math.max(numberSequence.length - 10, 0));
+                let bestCandidate = candidates[0];
+                let maxCandidateCount = 0;
+
+                candidates.forEach(candidate => {
+                    let candidateCount = lastTen.filter(n => n === candidate).length;
+                    if (candidateCount > maxCandidateCount) {
+                        maxCandidateCount = candidateCount;
+                        bestCandidate = candidate;
+                    }
+                });
+                return bestCandidate;
+            }
+            else
+            {
+                return candidates[0];
+            }
+        }
+
+        function submitActualResult() {
+            const actualResult = document.getElementById("actualResult").value.trim();
+
+            if (actualResult >= 0 && actualResult <= 9) {
+                totalPredictions++;
+                const predictedResult = document.getElementById("predictionResult").innerText;
+                const actualClassification = actualResult >= 5 ? "Big" : "Small";
+
+                if (predictedResult === actualClassification && predictedResult !== "Skip") {
+                    correctPredictions++;
+                }
+                else if (predictedResult === "Skip")
+                {
+                  correctPredictions += 0.5;
+                }
+
+                const accuracy = `${correctPredictions}/${totalPredictions}`;
+                document.getElementById("accuracyResult").innerText = accuracy;
+
+                // Add to history
+                predictionHistory.push({
+                    pair: document.getElementById("sequence").value,
+                    prediction: predictedResult,
+                    actual: actualClassification,
+                    correct: predictedResult === actualClassification
+                });
+                displayPredictionHistory();
+                document.getElementById("actualResult").value = ""; // Reset the input field
+                document.getElementById("sequence").value = "";
+            } else {
+                alert("Please enter a number between 0 and 9 for the actual result.");
+            }
+        }
+
+        function displayPredictionHistory() {
+            const historyDiv = document.getElementById("predictionHistory");
+            historyDiv.innerHTML = ''; // Clear previous history
+
+            predictionHistory.forEach((item) => {
+                const p = document.createElement("p");
+                p.textContent = `Pair: ${item.pair}, Prediction: ${item.prediction}, Actual: ${item.actual}, Correct: ${item.correct ? "<span style='color:#6ee7b7'>Yes</span>" : "<span style='color:#ef4444'>No</span>"}`;
+                historyDiv.appendChild(p);
+            });
+        }
+    </script>
 </body>
 </html>
