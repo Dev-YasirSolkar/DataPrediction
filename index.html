@@ -103,8 +103,10 @@
             font-size: 14px;
             color: #d1d5db;
             line-height: 1.5;
-            overflow: visible; /* Changed to visible */
-            max-height: none;  /* Removed max height */
+            overflow: visible;
+            max-height: none;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .history p {
@@ -274,8 +276,8 @@
 
     </style>
 </head>
-<body>
-    <div class="card">
+<body onclick="removeFocus()">
+    <div class="card" onclick="event.stopPropagation();">
         <h2>Wingo Number Sequence Analyzer</h2>
         <p>Enter the two numbers pair (e.g. 45 or 13):</p>
         <input type="text" id="sequence" placeholder="Enter Pair">
@@ -348,7 +350,8 @@
                     }
                     this.classList.add("selected");
                     selectedNumber = parseInt(this.textContent);
-                    submitActualResult();
+                    updatePredictionHistory();
+                    sequenceInput.value = ""; // Clear input here
                 });
                 numberBoxContainer.appendChild(numberBox);
             }
@@ -386,7 +389,7 @@
                 alert("Please enter a valid pair of numbers (e.g., 45 or 13).");
                 return;
             }
-            actualResultInput.focus();
+            // sequenceInput.value = ""; // Clear input here, on Predict Next  -- Removed
         }
 
         function findPrediction(pair) {
@@ -503,7 +506,6 @@
                 });
                 displayPredictionHistory();
                 sequenceInput.value = "";
-                sequenceInput.focus();
                 selectedNumber = null;
                 const selectedBox = document.querySelector(`.number-box.selected`);
                 if (selectedBox) {
@@ -538,6 +540,51 @@
                     ? "<span class='correct-yes'>Right</span>"
                     : "<span class='correct-no'>Wrong</span>";
             });
+        }
+
+        function removeFocus() {
+            if (document.activeElement.tagName === 'INPUT') {
+                document.activeElement.blur();
+            }
+        }
+
+        function updatePredictionHistory() {
+            const currentPair = sequenceInput.value;
+             if (selectedNumber !== null) {
+                totalPredictions++;
+                const predictedResult = document.getElementById("predictionResult").innerText.split(" ")[1];
+                const predictedNumber = getPredictedNumber(predictedResult);
+                const actualClassification = selectedNumber >= 5 ? "Big" : "Small";
+                const color = predictedNumber % 2 === 0 ? "Green" : "Red";
+
+                if (predictedResult === actualClassification && predictedResult !== "Skip") {
+                    correctPredictions++;
+                }
+                else if (predictedResult === "Skip")
+                {
+                  correctPredictions += 0.5;
+                }
+
+                const accuracy = `${correctPredictions}/${totalPredictions}`;
+                document.getElementById("accuracyResult").innerText = accuracy;
+
+                // Add to history
+                predictionHistory.unshift({
+                    pair: currentPair,
+                    prediction: predictedResult,
+                    actual: selectedNumber,
+                    color: color,
+                    correct: predictedResult === actualClassification
+                });
+                displayPredictionHistory();
+                sequenceInput.value = "";  // Moved here
+                // sequenceInput.focus();
+                // selectedNumber = null;
+                // const selectedBox = document.querySelector(`.number-box.selected`);
+                // if (selectedBox) {
+                //     selectedBox.classList.remove("selected");
+                // }
+             }
         }
     </script>
 </body>
