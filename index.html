@@ -15,7 +15,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px; /* Added padding for smaller screens */
+            padding: 20px;
         }
 
         .card {
@@ -80,6 +80,10 @@
             font-size: 18px;
             color: #e5e7eb;
             font-weight: 600;
+            display: flex;
+            align-items: center; /* Vertically align items */
+            justify-content: center; /* Center the content horizontally */
+            gap: 10px; /* Add some gap between the emoji and the text if needed */
         }
 
         .accuracy {
@@ -114,7 +118,7 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
-            flex-wrap: wrap; /* Added for responsiveness */
+            flex-wrap: wrap;
         }
 
         .actual-result {
@@ -122,8 +126,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%; /* Added for responsiveness */
-            max-width: 200px; /* Added max-width */
+            width: 100%;
+            max-width: 200px;
         }
 
         .actual-result input[type="text"] {
@@ -150,19 +154,68 @@
                 padding: 20px;
             }
             .result-section {
-                flex-direction: column; /* Stack elements vertically on small screens */
+                flex-direction: column;
                 align-items: center;
             }
             .actual-result {
-                margin-top: 20px; /* Add margin above actual result on small screens */
+                margin-top: 20px;
             }
         }
+
+        /* Table Styles */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #d1d5db;
+        }
+
+        .history-table th, .history-table td {
+            padding: 8px;
+            border-bottom: 1px solid #4b5563;
+            text-align: left;
+        }
+
+        .history-table th {
+            background-color: #374151;
+            font-weight: 600;
+        }
+
+        .history-table td {
+            color: #d1d5db;
+        }
+
+        .correct-yes {
+            color: #6ee7b7;
+        }
+
+        .correct-no {
+            color: #ef4444;
+        }
+
+        .color-circle {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .color-red {
+            background-color: #ef4444;
+        }
+
+        .color-green {
+            background-color: #6ee7b7;
+        }
+
     </style>
 </head>
 <body>
     <div class="card">
         <h2>Wingo Number Sequence Analyzer</h2>
-        <p>Enter the two numbers pair (comma-separated, e.g. 4,5 or 13):</p>
+        <p>Enter the two numbers pair (e.g. 45 or 13):</p>
         <input type="text" id="sequence" placeholder="Enter Pair">
         <button onclick="predictNext()">Predict Next</button>
 
@@ -182,7 +235,15 @@
         </div>
         <div class="history">
             <p><strong>Prediction History:</strong></p>
-            <div id="predictionHistory"></div>
+            <table class="history-table" id="predictionHistory">
+                <tr>
+                    <th>Pair</th>
+                    <th>Big/Small</th>
+                    <th>Number</th>
+                    <th>Color</th>
+                    <th>Correct</th>
+                </tr>
+            </table>
         </div>
     </div>
 
@@ -194,8 +255,29 @@
         let pairFrequency = {};
         let followingNumberFrequency = {};
 
+        const sequenceInput = document.getElementById("sequence");
+        const actualResultInput = document.getElementById("actualResult");
+        const predictionResultDisplay = document.getElementById("predictionResult");
+
+
+        // Restrict input to numbers only
+        sequenceInput.addEventListener("input", function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        actualResultInput.addEventListener("input", function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Add event listener for Enter key press in the actual result input
+        actualResultInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                submitActualResult();
+            }
+        });
+
         function predictNext() {
-            const input = document.getElementById("sequence").value.trim();
+            const input = sequenceInput.value.trim();
             let inputPair;
             if (input.length === 2)
             {
@@ -205,13 +287,24 @@
                 inputPair = input.split(',');
             }
 
-
             if (inputPair.length === 2 && !isNaN(inputPair[0]) && !isNaN(inputPair[1])) {
                 const result = findPrediction(inputPair);
-                document.getElementById("predictionResult").innerText = result;
+                const predictedNumber = getPredictedNumber(result);
+                const color = predictedNumber % 2 === 0 ? "Green" : "Red";
+                let emoji = "";
+                if (result === "Big") {
+                    emoji = "🔴";
+                } else if (result === "Small") {
+                    emoji = "🟢";
+                } else {
+                    emoji = "";
+                }
+                predictionResultDisplay.innerText = emoji + " " + result;
             } else {
-                alert("Please enter a valid pair of numbers separated by a comma.");
+                alert("Please enter a valid pair of numbers (e.g., 45 or 13).");
+                return;
             }
+            actualResultInput.focus();
         }
 
         function findPrediction(pair) {
@@ -255,7 +348,7 @@
             const freq = followingNumberFrequency[pairKey];
 
             if (!freq) {
-                return null; // No history for this pair
+                return null;
             }
 
             let maxFreq = 0;
@@ -265,12 +358,11 @@
              for (const number in freq) {
                 if (freq[number] > maxFreq) {
                     maxFreq = freq[number];
-                    candidates = [parseInt(number)]; // Start a new list
+                    candidates = [parseInt(number)];
                 } else if (freq[number] === maxFreq) {
-                    candidates.push(parseInt(number)); // Add to the existing list
+                    candidates.push(parseInt(number));
                 }
             }
-            // Prioritize the number that also appeared more frequently in the last 10 results
             if (candidates.length > 1) {
                 const lastTen = numberSequence.slice(Math.max(numberSequence.length - 10, 0));
                 let bestCandidate = candidates[0];
@@ -291,13 +383,22 @@
             }
         }
 
+        function getPredictedNumber(prediction) {
+            if (prediction === "Skip") {
+                return -1;
+            }
+            return prediction === "Big" ? 5 : 4;
+        }
+
         function submitActualResult() {
-            const actualResult = document.getElementById("actualResult").value.trim();
+            const actualResult = actualResultInput.value.trim();
 
             if (actualResult >= 0 && actualResult <= 9) {
                 totalPredictions++;
-                const predictedResult = document.getElementById("predictionResult").innerText;
+                const predictedResult = document.getElementById("predictionResult").innerText.split(" ")[1];
+                const predictedNumber = getPredictedNumber(predictedResult);
                 const actualClassification = actualResult >= 5 ? "Big" : "Small";
+                const color = predictedNumber % 2 === 0 ? "Green" : "Red";
 
                 if (predictedResult === actualClassification && predictedResult !== "Skip") {
                     correctPredictions++;
@@ -311,28 +412,44 @@
                 document.getElementById("accuracyResult").innerText = accuracy;
 
                 // Add to history
-                predictionHistory.push({
-                    pair: document.getElementById("sequence").value,
+                predictionHistory.unshift({
+                    pair: sequenceInput.value,
                     prediction: predictedResult,
-                    actual: actualClassification,
+                    actual: actualResult,
+                    color: color,
                     correct: predictedResult === actualClassification
                 });
                 displayPredictionHistory();
-                document.getElementById("actualResult").value = ""; // Reset the input field
-                document.getElementById("sequence").value = "";
+                actualResultInput.value = "";
+                sequenceInput.value = "";
+                sequenceInput.focus();
             } else {
                 alert("Please enter a number between 0 and 9 for the actual result.");
             }
         }
 
         function displayPredictionHistory() {
-            const historyDiv = document.getElementById("predictionHistory");
-            historyDiv.innerHTML = ''; // Clear previous history
+            const historyTable = document.getElementById("predictionHistory");
+            // Clear the table, but keep the header row
+            while (historyTable.rows.length > 1) {
+                historyTable.deleteRow(1);
+            }
 
             predictionHistory.forEach((item) => {
-                const p = document.createElement("p");
-                p.textContent = `Pair: ${item.pair}, Prediction: ${item.prediction}, Actual: ${item.actual}, Correct: ${item.correct ? "<span style='color:#6ee7b7'>Yes</span>" : "<span style='color:#ef4444'>No</span>"}`;
-                historyDiv.appendChild(p);
+                const row = historyTable.insertRow(1);
+                const pairCell = row.insertCell();
+                const predictionCell = row.insertCell();
+                const actualCell = row.insertCell();
+                const colorCell = row.insertCell();
+                const correctCell = row.insertCell();
+
+                pairCell.textContent = item.pair;
+                predictionCell.textContent = item.prediction;
+                actualCell.textContent = item.actual;
+                colorCell.innerHTML = `<span class="color-circle ${item.color === "Red" ? "color-red" : "color-green"}"></span>`;
+                correctCell.innerHTML = item.correct
+                    ? "<span class='correct-yes'>Right</span>"
+                    : "<span class='correct-no'>Wrong</span>";
             });
         }
     </script>
