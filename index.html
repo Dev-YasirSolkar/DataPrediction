@@ -163,6 +163,18 @@
             .actual-result {
                 margin-top: 20px;
             }
+            .input-button-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .input-button-container button{
+                width: 100%;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+             .input-button-container input[type="text"]{
+                margin-bottom: 10px;
+             }
         }
 
         /* Table Styles */
@@ -274,14 +286,32 @@
             background-image: linear-gradient(to bottom right, #047857, #064e3b);
         }
 
+        .input-button-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .input-button-container input[type="text"] {
+            margin-bottom: 0;
+            margin-right: 10px;
+            flex: 1;
+        }
+        .input-button-container button{
+            width: auto;
+            margin-left: 0;
+        }
+
     </style>
 </head>
 <body onclick="removeFocus()">
     <div class="card" onclick="event.stopPropagation();">
         <h2>Wingo Number Sequence Analyzer</h2>
         <p>Enter the two numbers pair (e.g. 45 or 13):</p>
-        <input type="text" id="sequence" placeholder="Enter Pair">
-        <button onclick="predictNext()">Predict Next</button>
+        <div class="input-button-container">
+            <input type="text" id="sequence" placeholder="Enter Pair">
+            <button onclick="predictNext()">Predict Next</button>
+        </div>
 
         <div class="result">
             <p><strong>Prediction Result:</strong> <span id="predictionResult">-</span></p>
@@ -351,7 +381,7 @@
                     this.classList.add("selected");
                     selectedNumber = parseInt(this.textContent);
                     updatePredictionHistory();
-                    sequenceInput.value = ""; // Clear input here
+                    sequenceInput.value = "";
                 });
                 numberBoxContainer.appendChild(numberBox);
             }
@@ -389,7 +419,7 @@
                 alert("Please enter a valid pair of numbers (e.g., 45 or 13).");
                 return;
             }
-            // sequenceInput.value = ""; // Clear input here, on Predict Next  -- Removed
+            // sequenceInput.value = "";
         }
 
         function findPrediction(pair) {
@@ -577,7 +607,7 @@
                     correct: predictedResult === actualClassification
                 });
                 displayPredictionHistory();
-                sequenceInput.value = "";  // Moved here
+                sequenceInput.value = "";
                 // sequenceInput.focus();
                 // selectedNumber = null;
                 // const selectedBox = document.querySelector(`.number-box.selected`);
