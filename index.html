@@ -357,247 +357,227 @@
 
     <script>
         const numberSequence = [6, 8, 4, 0, 4, 0, 5, 5, 0, 6, 0, 5, 5, 0, 8, 0, 7, 6, 4, 9, 3, 9, 7, 2, 7, 2, 7, 1, 2, 7, 0, 1, 7, 6, 9, 4, 1, 9, 5, 9, 2, 5, 3, 5, 6, 6, 8, 5, 1, 8, 2, 0, 5, 8, 8, 0, 1, 9, 7, 7, 4, 3, 4, 5, 2, 3, 9, 0, 9, 8, 9, 3, 5, 5, 0, 6, 0, 7, 3, 8, 6, 0, 5, 5, 3, 7, 9, 8, 4, 8, 0, 2, 7, 7, 2, 7, 7, 1, 8, 1, 6, 1, 4, 9, 9, 5, 5, 0, 0, 4, 0, 8, 1, 5, 1, 3, 5, 1, 3, 4, 7, 4, 7, 3, 7, 7, 9, 1];
-        let totalPredictions = 0;
-        let correctPredictions = 0;
-        let correctColorPredictions = 0;
-        let predictionHistory = [];
-        let pairFrequency = {};
-        let followingNumberFrequency = {};
-        let selectedNumber = null;
+let totalPredictions = 0;
+let correctPredictions = 0;
+let correctColorPredictions = 0;
+let pairFrequency = {};
+let followingNumberFrequency = {};
+let selectedNumber = null;
 
-        const sequenceInput = document.getElementById("sequence");
-        const actualResultInput = document.getElementById("actualResult");
-        const predictionResultDisplay = document.getElementById("predictionResult");
-        const numberBoxContainer = document.getElementById("numberBoxContainer");
-        const predictionHistoryTable = document.getElementById("predictionHistoryTable");
-        const bigSmallAccuracyDisplay = document.getElementById("bigSmallAccuracyResult");
-        const colorAccuracyDisplay = document.getElementById("colorAccuracyResult");
+const sequenceInput = document.getElementById("sequence");
+const predictionResultDisplay = document.getElementById("predictionResult");
+const numberBoxContainer = document.getElementById("numberBoxContainer");
+const predictionHistoryTable = document.getElementById("predictionHistoryTable");
+const bigSmallAccuracyDisplay = document.getElementById("bigSmallAccuracyResult");
+const colorAccuracyDisplay = document.getElementById("colorAccuracyResult");
 
 
-        // Restrict input to numbers only
-        sequenceInput.addEventListener("input", function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
+// Restrict input to numbers only
+sequenceInput.addEventListener("input", function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
 
 
-        // Function to create number boxes
-        function createNumberBoxes() {
-            numberBoxContainer.innerHTML = '';
-            for (let i = 0; i <= 9; i++) {
-                const numberBox = document.createElement("div");
-                numberBox.classList.add("number-box");
-                numberBox.textContent = i;
-                numberBox.addEventListener("click", function(event) {
-                    event.preventDefault();
-                    if (selectedNumber !== null) {
-                        const previousSelectedBox = document.querySelector(`.number-box.selected`);
-                        if (previousSelectedBox) {
-                            previousSelectedBox.classList.remove("selected");
-                        }
-                    }
-                    this.classList.add("selected");
-                    selectedNumber = parseInt(this.textContent);
-                    updatePredictionHistory();
-                    sequenceInput.value = "";
-                });
-                numberBoxContainer.appendChild(numberBox);
-            }
-        }
-
-        // Call the function to create the number boxes when the page loads
-        createNumberBoxes();
-
-
-        function predictNext() {
-            const input = sequenceInput.value.trim();
-            let inputPair;
-            if (input.length === 2) {
-                inputPair = [input[0], input[1]];
-            } else {
-                inputPair = input.split(',');
-            }
-
-            if (inputPair.length === 2 && !isNaN(inputPair[0]) && !isNaN(inputPair[1])) {
-                const result = findPrediction(inputPair);
-                const predictedNumber = getPredictedNumber(result);
-                const color = predictedNumber % 2 !== 0 ? "Green" : "Red";
-                let emoji = "";
-                if (result === "Big") {
-                    emoji = "🔴";
-                } else if (result === "Small") {
-                    emoji = "🟢";
-                } else {
-                    emoji = "";
-                }
-                predictionResultDisplay.innerText = emoji + " " + result;
-            } else {
-                alert("Please enter a valid pair of numbers (e.g., 45 or 13).");
-                return;
-            }
-            // sequenceInput.value = "";
-        }
-
-        function findPrediction(pair) {
-            const pairNum1 = parseInt(pair[0]);
-            const pairNum2 = parseInt(pair[1]);
-
-            if (isNaN(pairNum1) || isNaN(pairNum2)) {
-                return "Invalid Input";
-            }
-
-            updateFrequency(pairNum1, pairNum2);
-            const nextNumberPrediction = predictNextNumber(pairNum1, pairNum2);
-
-            if (nextNumberPrediction === null) {
-                return "Skip";
-            } else {
-                return nextNumberPrediction >= 5 ? "Big" : "Small";
-            }
-        }
-
-        function updateFrequency(num1, num2) {
-            const pairKey = `${num1},${num2}`;
-            pairFrequency[pairKey] = (pairFrequency[pairKey] || 0) + 1;
-
-            for (let i = 0; i < numberSequence.length - 1; i++) {
-                if (numberSequence[i] === num1 && numberSequence[i + 1] === num2) {
-                    if (i + 2 < numberSequence.length) {
-                        const nextNumber = numberSequence[i + 2];
-                        if (!followingNumberFrequency[pairKey]) {
-                            followingNumberFrequency[pairKey] = {};
-                        }
-                        followingNumberFrequency[pairKey][nextNumber] =
-                            (followingNumberFrequency[pairKey][nextNumber] || 0) + 1;
-                    }
-                }
-            }
-        }
-
-        function predictNextNumber(num1, num2) {
-            const pairKey = `${num1},${num2}`;
-            const freq = followingNumberFrequency[pairKey];
-
-            if (!freq) {
-                return null;
-            }
-
-            let maxFreq = 0;
-            let predictedNumber = null;
-            let candidates = [];
-
-             for (const number in freq) {
-                if (freq[number] > maxFreq) {
-                    maxFreq = freq[number];
-                    candidates = [parseInt(number)];
-                } else if (freq[number] === maxFreq) {
-                    candidates.push(parseInt(number));
-                }
-            }
-            if (candidates.length > 1) {
-                const lastTen = numberSequence.slice(Math.max(numberSequence.length - 10, 0));
-                let bestCandidate = candidates[0];
-                let maxCandidateCount = 0;
-
-                candidates.forEach(candidate => {
-                    let candidateCount = lastTen.filter(n => n === candidate).length;
-                    if (candidateCount > maxCandidateCount) {
-                        maxCandidateCount = candidateCount;
-                        bestCandidate = candidate;
-                    }
-                });
-                return bestCandidate;
-            }
-            else
-            {
-                return candidates[0];
-            }
-        }
-
-        function getPredictedNumber(prediction) {
-            if (prediction === "Skip") {
-                return -1;
-            }
-            return prediction === "Big" ? 5 : 4;
-        }
-
-
-
-        function removeFocus() {
-            if (document.activeElement.tagName === 'INPUT') {
-                document.activeElement.blur();
-            }
-        }
-
-        function updatePredictionHistory() {
-            const currentPair = sequenceInput.value;
+// Function to create number boxes
+function createNumberBoxes() {
+    numberBoxContainer.innerHTML = '';
+    for (let i = 0; i <= 9; i++) {
+        const numberBox = document.createElement("div");
+        numberBox.classList.add("number-box");
+        numberBox.textContent = i;
+        numberBox.addEventListener("click", function(event) {
+            event.preventDefault();
             if (selectedNumber !== null) {
-                totalPredictions++;
-                const predictedResult = document.getElementById("predictionResult").innerText.split(" ")[1];
-                const predictedNumber = getPredictedNumber(predictedResult);
-                const actualClassification = selectedNumber >= 5 ? "Big" : "Small";
-                const selectedNumberColor = selectedNumber % 2 !== 0 ? "Green" : "Red";
-                const predictedColor = predictedNumber % 2 !== 0 ? "Green" : "Red";
-                let isColorCorrect = predictedColor === selectedNumberColor;
-
-
-                if (predictedResult === actualClassification && predictedResult !== "Skip") {
-                    correctPredictions++;
-                } else if (predictedResult === "Skip") {
-                    correctPredictions += 0.5;
+                const previousSelectedBox = document.querySelector(`.number-box.selected`);
+                if (previousSelectedBox) {
+                    previousSelectedBox.classList.remove("selected");
                 }
+            }
+            this.classList.add("selected");
+            selectedNumber = parseInt(this.textContent);
+            updatePredictionHistory();
+            sequenceInput.value = "";
+        });
+        numberBoxContainer.appendChild(numberBox);
+    }
+}
 
-                if (!isColorCorrect) {
-                    correctColorPredictions++;
+// Call the function to create the number boxes when the page loads
+createNumberBoxes();
+
+
+function predictNext() {
+    const input = sequenceInput.value.trim();
+    let inputPair;
+    if (input.length === 2) {
+        inputPair = [input[0], input[1]];
+    } else {
+        inputPair = input.split(',');
+    }
+
+    if (inputPair.length === 2 && !isNaN(inputPair[0]) && !isNaN(inputPair[1])) {
+        const result = findPrediction(inputPair);
+        const predictedNumber = getPredictedNumber(result);
+        let emoji = "";
+        if (result === "Big") {
+            emoji = "🔴";
+        } else if (result === "Small") {
+            emoji = "🟢";
+        } else {
+            emoji = "";
+        }
+        predictionResultDisplay.innerText = emoji + " " + result;
+    } else {
+        alert("Please enter a valid pair of numbers (e.g., 45 or 13).");
+        return;
+    }
+    // sequenceInput.value = "";
+}
+
+function findPrediction(pair) {
+    const pairNum1 = parseInt(pair[0]);
+    const pairNum2 = parseInt(pair[1]);
+
+    if (isNaN(pairNum1) || isNaN(pairNum2)) {
+        return "Invalid Input";
+    }
+
+    updateFrequency(pairNum1, pairNum2);
+    const nextNumberPrediction = predictNextNumber(pairNum1, pairNum2);
+
+    if (nextNumberPrediction === null) {
+        return "Skip";
+    } else {
+        return nextNumberPrediction >= 5 ? "Big" : "Small";
+    }
+}
+
+function updateFrequency(num1, num2) {
+    const pairKey = `${num1},${num2}`;
+    pairFrequency[pairKey] = (pairFrequency[pairKey] || 0) + 1;
+
+    for (let i = 0; i < numberSequence.length - 1; i++) {
+        if (numberSequence[i] === num1 && numberSequence[i + 1] === num2) {
+            if (i + 2 < numberSequence.length) {
+                const nextNumber = numberSequence[i + 2];
+                if (!followingNumberFrequency[pairKey]) {
+                    followingNumberFrequency[pairKey] = {};
                 }
-                const bigSmallAccuracy = (correctPredictions / totalPredictions) * 100;
-                const colorAccuracy = (correctColorPredictions / totalPredictions) * 100;
-
-                bigSmallAccuracyDisplay.innerText = bigSmallAccuracy.toFixed(2) + "%";
-                colorAccuracyDisplay.innerText = colorAccuracy.toFixed(2) + "%";
-
-
-                // Add to history
-                predictionHistory.unshift({
-                    pair: currentPair,
-                    prediction: predictedResult,
-                    actual: selectedNumber,
-                    color: selectedNumberColor,
-                    correct: predictedResult === actualClassification,
-                    colorCorrect: !isColorCorrect,
-                });
-                displayPredictionHistory();
-                sequenceInput.value = "";
+                followingNumberFrequency[pairKey][nextNumber] =
+                    (followingNumberFrequency[pairKey][nextNumber] || 0) + 1;
             }
         }
+    }
+}
 
-        function displayPredictionHistory() {
-            const historyTable = document.getElementById("predictionHistoryTable");
-            // Clear the table, but keep the header row
-            while (historyTable.rows.length > 1) {
-                historyTable.deleteRow(1);
-            }
-            // Add new rows to the top of the table
-            predictionHistory.forEach((item) => {
-                const row = historyTable.insertRow(1);
-                const pairCell = row.insertCell();
-                const predictionCell = row.insertCell();
-                const actualCell = row.insertCell();
-                const colorCell = row.insertCell();
-                const correctCell = row.insertCell();
-                const colorCorrectCell = row.insertCell();
+function predictNextNumber(num1, num2) {
+    const pairKey = `${num1},${num2}`;
+    const freq = followingNumberFrequency[pairKey];
 
-                pairCell.textContent = item.pair;
-                predictionCell.textContent = item.prediction;
-                actualCell.textContent = item.actual;
-                colorCell.innerHTML = `<span class="color-circle ${item.color === "Green" ? "color-green" : "color-red"}"></span>`;
-                correctCell.innerHTML = item.correct
-                    ? "<span class='correct-yes'>Right</span>"
-                    : "<span class='correct-no'>Wrong</span>";
-                colorCorrectCell.innerHTML = item.colorCorrect
-                    ? "<span class='correct-yes'>Right</span>"
-                    : "<span class='correct-no'>Wrong</span>";
-            });
+    if (!freq) {
+        return null;
+    }
+
+    let maxFreq = 0;
+    let candidates = [];
+
+    for (const number in freq) {
+        if (freq[number] > maxFreq) {
+            maxFreq = freq[number];
+            candidates = [parseInt(number)];
+        } else if (freq[number] === maxFreq) {
+            candidates.push(parseInt(number));
         }
+    }
+    if (candidates.length > 1) {
+        const lastTen = numberSequence.slice(Math.max(numberSequence.length - 10, 0));
+        let bestCandidate = candidates[0];
+        let maxCandidateCount = 0;
+
+        candidates.forEach(candidate => {
+            let candidateCount = lastTen.filter(n => n === candidate).length;
+            if (candidateCount > maxCandidateCount) {
+                maxCandidateCount = candidateCount;
+                bestCandidate = candidate;
+            }
+        });
+        return bestCandidate;
+    }
+    else
+    {
+        return candidates[0];
+    }
+}
+
+function getPredictedNumber(prediction) {
+    if (prediction === "Skip") {
+        return -1;
+    }
+    return prediction === "Big" ? 5 : 4;
+}
+
+
+function removeFocus() {
+    if (document.activeElement.tagName === 'INPUT') {
+        document.activeElement.blur();
+    }
+}
+
+function updatePredictionHistory() {
+    const currentPair = sequenceInput.value;
+    if (selectedNumber !== null) {
+        totalPredictions++;
+        const predictedResult = document.getElementById("predictionResult").innerText.split(" ")[1];
+        const predictedNumber = getPredictedNumber(predictedResult);
+        const actualClassification = selectedNumber >= 5 ? "Big" : "Small";
+        const selectedNumberColor = selectedNumber % 2 !== 0 ? "Green" : "Red";
+        const predictedColor = predictedNumber % 2 !== 0 ? "Green" : "Red";
+        let isColorCorrect = predictedColor === selectedNumberColor;
+
+        if (predictedResult === actualClassification && predictedResult !== "Skip") {
+            correctPredictions++;
+        } else if (predictedResult === "Skip") {
+            correctPredictions += 0.5;
+        }
+
+        if (!isColorCorrect) {
+            correctColorPredictions++;
+        }
+        const bigSmallAccuracy = (correctPredictions / totalPredictions) * 100;
+        const colorAccuracy = (correctColorPredictions / totalPredictions) * 100;
+
+        bigSmallAccuracyDisplay.innerText = bigSmallAccuracy.toFixed(2) + "%";
+        colorAccuracyDisplay.innerText = colorAccuracy.toFixed(2) + "%";
+
+        // Create a new row for the history table
+        const historyTable = document.getElementById("predictionHistoryTable");
+        const newRow = historyTable.insertRow(1); // Insert at the second position (after the header)
+
+        const pairCell = newRow.insertCell();
+        const predictionCell = newRow.insertCell();
+        const actualCell = newRow.insertCell();
+        const colorCell = newRow.insertCell();
+        const correctCell = newRow.insertCell();
+        const colorCorrectCell = newRow.insertCell();
+
+        pairCell.textContent = currentPair;
+        predictionCell.textContent = predictedResult;
+        actualCell.textContent = selectedNumber;
+        colorCell.innerHTML = `<span class="color-circle ${selectedNumberColor === "Green" ? "color-green" : "color-red"}"></span>`;
+        correctCell.innerHTML = predictedResult === actualClassification
+            ? "<span class='correct-yes'>Right</span>"
+            : "<span class='correct-no'>Wrong</span>";
+        colorCorrectCell.innerHTML = !isColorCorrect
+            ? "<span class='correct-yes'>Right</span>"
+            : "<span class='correct-no'>Wrong</span>";
+
+        sequenceInput.value = "";
+    }
+}
+
+function displayPredictionHistory() {
+    // This function is no longer needed as the history is updated directly in `updatePredictionHistory`
+}
     </script>
 </body>
 </html>
