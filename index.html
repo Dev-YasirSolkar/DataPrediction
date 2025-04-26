@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wingo Number Sequence Analyzer</title>
+    <title>Wingo Sequence Analyzer</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -91,7 +91,7 @@
             font-size: 20px;
             color: #e5e7eb;
             font-weight: 700;
-            text-align: left; /* Align text to the left */
+            text-align: left;
         }
 
         .history {
@@ -196,6 +196,7 @@
         .history-table th {
             background-color: #374151;
             font-weight: 600;
+            font-size: 12px; /* Reduced font size by 20% */
         }
 
         .history-table td {
@@ -246,15 +247,19 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
+            font-size: 25px;  /* Increased font size to 25px */
             cursor: pointer;
             transition:  0.3s ease;
             border: none;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             margin: 10px;
-            background-image: none;
-            color: #f9fafb;
+            background-image: url("https://firebasestorage.googleapis.com/v0/b/galib-ke-talib.appspot.com/o/redChip.png?alt=media&token=8944de7d-4edf-4174-8206-88bc03e48c08"); /* Set the background image */
+            background-size: cover; /* Ensure the image covers the entire box */
+            background-position: center; /* Center the image */
+            color: #ffffff;
             position: relative;
+            overflow: hidden; /* Ensure the background image doesn't overflow */
+            font-weight: 900;
         }
 
         .number-box:hover {
@@ -269,22 +274,27 @@
              box-shadow: 0 5px 10px rgba(0, 0, 0, 0.6);
         }
 
-        .number-box:nth-child(odd) {
-            background-image: linear-gradient(to bottom right, #ef4444, #b91c1c);
-            color: #ffffff;
+        .number-box:nth-child(even) {
+            background-image: url("https://firebasestorage.googleapis.com/v0/b/galib-ke-talib.appspot.com/o/greenChip.png?alt=media&token=8cb0edd2-8799-4548-840b-a2d507a29207"); /* Set the background image */
+            background-size: cover; /* Ensure the image covers the entire box */
+            background-position: center; /* Center the image */
+            color: #29995C; /* Darker green */
         }
 
-        .number-box:nth-child(even) {
-            background-image: linear-gradient(to bottom right, #10b981, #059669);
-            color: #ffffff;
+        .number-box:nth-child(odd) {
+             color: #F43C44; /* Darker red */
         }
 
         .number-box:nth-child(odd):hover {
-             background-image: linear-gradient(to bottom right, #dc2626, #7f1d1d);
+             background-image: url("https://firebasestorage.googleapis.com/v0/b/galib-ke-talib.appspot.com/o/redChip.png?alt=media&token=8944de7d-4edf-4174-8206-88bc03e48c08"); /* Keep background on hover */
+             background-size: cover;
+             background-position: center;
         }
 
          .number-box:nth-child(even):hover {
-            background-image: linear-gradient(to bottom right, #047857, #064e3b);
+            background-image: url("https://firebasestorage.googleapis.com/v0/b/galib-ke-talib.appspot.com/o/greenChip.png?alt=media&token=8cb0edd2-8799-4548-840b-a2d507a29207"); /* Keep background on hover */
+             background-size: cover;
+             background-position: center;
         }
 
         .input-button-container {
@@ -307,8 +317,8 @@
 </head>
 <body onclick="removeFocus()">
     <div class="card" onclick="event.stopPropagation();">
-        <h2>Wingo Number Sequence Analyzer</h2>
-        <p>Enter the two numbers pair (e.g. 45 or 13):</p>
+        <h2>Wingo Sequence Analyzer</h2>
+        <p style="font-size: 0.9em;">Enter the two numbers pair (e.g. 45 or 13):</p>
         <div class="input-button-container">
             <input type="text" id="sequence" placeholder="Enter Pair">
             <button onclick="predictNext()">Predict Next</button>
@@ -526,7 +536,8 @@
                 const actualClassification = selectedNumber >= 5 ? "Big" : "Small";
                 const selectedNumberColor = selectedNumber % 2 !== 0 ? "Green" : "Red";
                 const predictedColor = predictedNumber % 2 !== 0 ? "Green" : "Red";
-                let isColorCorrect = predictedColor !== selectedNumberColor;
+                let isColorCorrect = predictedColor === selectedNumberColor;
+
 
                 if (predictedResult === actualClassification && predictedResult !== "Skip") {
                     correctPredictions++;
@@ -534,7 +545,7 @@
                     correctPredictions += 0.5;
                 }
 
-                if (isColorCorrect) {
+                if (!isColorCorrect) {
                     correctColorPredictions++;
                 }
                 const bigSmallAccuracy = (correctPredictions / totalPredictions) * 100;
@@ -551,7 +562,7 @@
                     actual: selectedNumber,
                     color: selectedNumberColor,
                     correct: predictedResult === actualClassification,
-                    colorCorrect: isColorCorrect,
+                    colorCorrect: !isColorCorrect,
                 });
                 displayPredictionHistory();
                 sequenceInput.value = "";
